@@ -1,1020 +1,162 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🚜 Tractor Time Logger + Multi Activity</title>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#047857">
-<link rel="icon" href="icon-192.png">
-<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script> 
-<style>
-body {
-  font-family: 'Segoe UI', sans-serif;
-  text-align: center;
-  margin: 20px;
-  background: #f0fdf4;
-}
-h2 { color: #047857; }
-button, select {
-  padding: 10px 18px;
-  margin: 5px;
-  font-size: 16px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-button:hover { transform: scale(1.05); }
-/* Start and Stop are now first */
-#startBtn { background: #10b981; color: white; }
-#stopBtn { background: #ef4444; color: white; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kanu Jaat Admin Panel</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #ffffff;
+      text-align: center;
+    }
 
-#newActBtn { background: #3b82f6; color: white; }
-#screenshotBtn { background: #34d399; color: white; } 
-#calcBtn { background: #7c3aed; color: white; } 
-#clearBtn { background: #f59e0b; color: white; }
-#lockBtn { background: #6b7280; color: white; } /* NEW Lock Button Style */
+    h1 {
+      margin-top: 50px;
+      font-size: 2em;
+      color: #333;
+    }
 
-#langSel { float: right; margin-top: -40px; }
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 20px;
-  background: #fff;
-  animation: fadeIn 0.5s;
-}
-th, td {
-  border: 1px solid #ccc;
-  padding: 8px;
-}
-th { background: #d1fae5; }
-.summary-row td {
-  background: #e0e7ff;
-  font-weight: bold;
-  text-align: left;
-  border: none;
-}
-.hr-row td {
-  border-top: 2px solid #111;
-  border-bottom: none;
-  border-left: none;
-  border-right: none;
-  padding: 0;
-  height: 2px;
-  background: none;
-}
-.edit-btn {
-  background: transparent;
-  border: none;
-  font-size: 16px;
-  cursor: pointer;
-}
-.editable-input {
-  width: 90%;
-  padding: 3px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-}
-#summary { margin-top: 15px; font-size: 17px; }
+    #passwordSection {
+      margin-top: 100px;
+    }
 
-.active-row {
-  background-color: #bbf7d0;
-  animation: glow 1.5s infinite alternate;
-}
+    input[type="password"] {
+      padding: 10px;
+      font-size: 16px;
+    }
 
-@keyframes glow {
-  0% { box-shadow: 0 0 5px #10b981; }
-  50% { box-shadow: 0 0 15px #10b981; }
-  100% { box-shadow: 0 0 5px #10b981; }
-}
-@keyframes fadeIn { from {opacity:0} to {opacity:1} }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
 
-/* New Mini Button Style */
-.time-adj-btn {
-  background: #fff;
-  color: #ef4444; /* - button color */
-  border: 1px solid #ccc;
-  padding: 1px 4px; /* Reduced padding */
-  margin: 0; /* Removed margin */
-  font-size: 11px; /* Adjusted font size */
-  line-height: 1;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background 0.1s;
-  display: inline-block;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-  /* KEY POSITIONING CHANGES */
-  position: absolute; 
-  top: 1px; 
-}
-.time-adj-btn.add {
-  color: #10b981; /* + button color */
-  right: 1px; /* Position + button on the right corner */
-}
-.time-adj-btn.sub {
-  left: 1px; /* Position - button on the left corner */
-}
-.time-adj-btn:hover {
-  background: #eee;
-}
-/* Ensure the time text is displayed correctly with buttons */
-.time-cell {
-  text-align: center;
-  white-space: nowrap; 
-  position: relative; /* KEY CHANGE: To position buttons absolutely inside */
-  padding-top: 20px; /* Add space for the top buttons */
-}
-.time-cell span {
-  display: block; 
-  font-size: 14px;
-  margin-top: 2px;
-  font-weight: bold;
-}
+    table {
+      margin: 40px auto;
+      border-collapse: collapse;
+      width: 80%;
+      max-width: 600px;
+    }
 
-/* NEW: Style to hide buttons when locked */
-.locked-hidden {
-    display: none !important; 
-}
+    th, td {
+      border: 1px solid #ddd;
+      padding: 12px;
+      text-align: center;
+      font-size: 18px;
+    }
 
+    th {
+      background-color: #007bff;
+      color: white;
+    }
 
-/* Calculator Modal Styles */
-.modal {
-  display: none; 
-  position: fixed; 
-  z-index: 1000; 
-  left: 0;
-  top: 0;
-  width: 100%; 
-  height: 100%; 
-  overflow: auto; 
-  background-color: rgba(0,0,0,0.4); 
-}
-.modal-content {
-  background-color: #fefefe;
-  margin: 10% auto; 
-  padding: 20px;
-  border: 1px solid #888;
-  width: 90%; 
-  max-width: 400px; 
-  border-radius: 10px;
-  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
-}
-.close {
-  color: #aaa;
-  float: right;
-  font-size: 28px;
-  font-weight: bold;
-}
-.close:hover,
-.close:focus {
-  color: black;
-  text-decoration: none;
-  cursor: pointer;
-}
+    tr:hover {
+      background-color: #f2f2f2;
+    }
 
-/* Calculator Button Styling */
-.calc-btn {
-    padding: 15px 10px;
-    font-size: 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    background: #e5e7eb; /* Light Gray for numbers */
-    font-weight: bold;
-    transition: background 0.1s;
-}
-.calc-btn:hover {
-    background: #d1d5db;
-}
-.operator-btn {
-    background: #a7f3d0; /* Light Green for operators */
-    color: #047857;
-}
-.operator-btn:hover {
-    background: #6ee7b7;
-}
-.utility-btn {
-    background: #fca5a5; /* Red for utility like AC */
-}
-.time-unit-btn {
-    background: #bfdbfe; /* Blue for H/M */
-}
-</style>
+    .hidden {
+      display: none;
+    }
+
+    #iframeContainer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      background-color: white;
+      display: none;
+      flex-direction: column;
+    }
+
+    #iframeContainer iframe {
+      flex: 1;
+      border: none;
+      width: 100%;
+    }
+
+    #backBtn {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      font-size: 18px;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    #backBtn:hover {
+      background-color: #0056b3;
+    }
+
+    footer {
+      margin-top: 40px;
+      font-size: 14px;
+      color: #666;
+    }
+  </style>
 </head>
 <body>
 
-<select id="langSel">
-  <option value="hi">🇮🇳 हिन्दी</option>
-  <option value="en">🇬🇧 English</option>
-</select>
-
-<h2 id="mainHeading">🚜 ट्रैक्टर वर्क लॉगर + ₹25/मिनट</h2>
-
-<button id="startBtn"></button>      
-<button id="stopBtn"></button>       
-<button id="newActBtn"></button>     
-<button id="screenshotBtn"></button> 
-<button id="calcBtn"></button>       
-<button id="clearBtn"></button>      
-<button id="lockBtn"></button> <table id="logTable">
-  <tr>
-    <th></th><th></th><th></th><th></th><th></th><th></th><th></th>
-  </tr>
-</table>
-
-<div id="summary"></div>
-
-<audio id="startSound" src="start.mp3" preload="auto"></audio>
-<audio id="stopSound" src="stop.mp3" preload="auto"></audio>
-
-<div id="calculatorModal" class="modal">
-  <div class="modal-content">
-    <span class="close" id="closeCalcBtn">&times;</span>
-    <h3 id="calcHeading" style="margin-top: 0;">⏰ टाइम कैलकुलेटर</h3>
-
-    <div id="calcDisplay" style="text-align: right; background: #ecfdf5; padding: 10px; border-radius: 5px; margin-bottom: 10px;">
-        <div id="currentOperation" style="font-size: 14px; color: #6b7280; min-height: 14px;">0h 0m</div> 
-        <div id="mainDisplay" style="font-size: 28px; font-weight: bold;">0h 0m</div>
-    </div>
-    <div id="calcPayment" style="text-align: left; font-size: 16px; margin-bottom: 15px; font-weight: bold; color: #047857;">Payment: ₹0</div>
-
-    <div id="calcButtons" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
-        <button class="calc-btn utility-btn" data-type="clearAll" style="background: #fca5a5;">AC</button>
-        <button class="calc-btn utility-btn" data-type="clearEntry" style="background: #fca5a5;">C</button>
-        
-        <button class="calc-btn time-unit-btn" data-unit="H">Hr</button>
-        <button class="calc-btn time-unit-btn" data-unit="M">Min</button>
-        <button class="calc-btn operator-btn" data-op="add">+</button> 
-
-        <button class="calc-btn num-btn" data-value="7">7</button>
-        <button class="calc-btn num-btn" data-value="8">8</button>
-        <button class="calc-btn num-btn" data-value="9">9</button>
-        <button class="calc-btn operator-btn" data-op="subtract">-</button> 
-
-        <button class="calc-btn num-btn" data-value="4">4</button>
-        <button class="calc-btn num-btn" data-value="5">5</button>
-        <button class="calc-btn num-btn" data-value="6">6</button>
-        <button class="calc-btn operator-btn" data-op="equals" style="background: #34d399; grid-row: span 2;">=</button>
-
-        <button class="calc-btn num-btn" data-value="1">1</button>
-        <button class="calc-btn num-btn" data-value="2">2</button>
-        <button class="calc-btn num-btn" data-value="3">3</button>
-        
-        <button class="calc-btn num-btn" data-value="0" style="grid-column: span 2;">0</button>
-        <button class="calc-btn utility-btn" data-type="decimal" disabled style="opacity: 0.5;">.</button>
-        
-    </div>
-
+  <div id="passwordSection">
+    <h1>🔐 Admin Security</h1>
+    <p>Enter password to access admin panel:</p>
+    <input type="password" id="passwordInput" placeholder="Enter Password">
+    <button onclick="checkPassword()">Unlock</button>
   </div>
-</div>
-<script>
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('./service-worker.js');
 
-const translations = {
-  hi: {
-    mainHeading: "🚜 ट्रैक्टर वर्क लॉगर + ₹25/मिनट",
-    calculator: "🖩 टाइम कैलकुलेटर", 
-    screenshot: "📸 स्क्रीनशॉट लें", 
-    calcHeading: "⏰ टाइम कैलकुलेटर", 
-    totalPaymentResult: "पेमेंट: ₹{P}", 
-    hourShort: "घं", 
-    minuteShort: "मि", 
-    newActivity: "➕ नई एक्टिविटी",
-    start: "▶ शुरू करें",
-    stop: "⏹ रोकें",
-    clear: "🗑 डेटा साफ करें",
-    lock: "🔒 लॉक करें", // NEW
-    unlock: "🔓 अनलॉक करें", // NEW
-    activity: "एक्टिविटी",
-    date: "तारीख",
-    startTime: "शुरू",
-    stopTime: "रोकें",
-    totalTime: "कुल समय",
-    payment: "पेमेंट (₹)",
-    delete: "मिटाएँ",
-    edit: "✏️",
-    summaryRow: "पिछली एक्टिविटी का कुल समय: {H} घण्टा {M} मिनट | Amount: ₹{P}",
-    totalSummary: "कुल समय: {H} घण्टा {M} मिनट | कुल पेमेंट: ₹{P}",
-    pleaseCreate: "पहले नई एक्टिविटी बनाएं!",
-    pleaseStop: "पहले Stop दबाएं!",
-    pleaseStart: "पहले Start दबाइए!",
-    entryDelQ: "क्या ये एंट्री मिटानी है?",
-    allDelQ: "सारा डेटा मिटाना है?"
-  },
-  en: {
-    mainHeading: "🚜 Tractor Work Logger + ₹25/min",
-    calculator: "🖩 Time Calculator", 
-    screenshot: "📸 Take Screenshot", 
-    calcHeading: "⏰ Time Calculator", 
-    totalPaymentResult: "Payment: ₹{P}", 
-    hourShort: "h", 
-    minuteShort: "m", 
-    newActivity: "➕ New Activity",
-    start: "▶ Start",
-    stop: "⏹ Stop",
-    clear: "🗑 Clear Data",
-    lock: "🔒 Lock", // NEW
-    unlock: "🔓 Unlock", // NEW
-    activity: "Activity",
-    date: "Date",
-    startTime: "Start",
-    stopTime: "Stop",
-    totalTime: "Total Time",
-    payment: "Payment (₹)",
-    delete: "Delete",
-    edit: "✏️",
-    summaryRow: "Previous Activity Total Time: {H} hour {M} minute | Amount: ₹{P}",
-    totalSummary: "Total Time: {H} hour {M} minute | Total Payment: ₹{P}",
-    pleaseCreate: "Please create a new Activity first!",
-    pleaseStop: "Press Stop first!",
-    pleaseStart: "Press Start first!",
-    entryDelQ: "Delete this entry?",
-    allDelQ: "Delete all data?"
-  }
-};
+  <div id="adminPanel" class="hidden">
+    <h1>Welcome, Choudhary Ji 😎</h1>
+    <table>
+      <tr><th>Project Name</th></tr>
+      <tr><td onclick="openIframe('https://kannu-jaat.github.io/DJ/kk')">DJ API Live</td></tr>
+      <tr><td onclick="openIframe('https://kannu-jaat.github.io/DJ-Mixing-2/finally')">DJ 2 Web API</td></tr>
+      <tr><td onclick="openIframe('https://kannu-jaat.github.io/flying-modi/jaat')">Flying Modi</td></tr>
+      <tr><td>Coming Soon</td></tr>
+      <tr><td>Coming Soon</td></tr>
+    </table>
+  </div>
 
-let selectedLang = localStorage.getItem("tractorLang") || "hi";
-const RATE_PER_MIN = 25;
-let data = JSON.parse(localStorage.getItem("tractorData") || "[]");
-let startTime = null;
-let currentActivity = data.length-1;
-let currentRowIndex = null;
-let isLocked = JSON.parse(localStorage.getItem("tractorLocked") || "false"); // NEW STATE
+  <div id="iframeContainer">
+    <button id="backBtn" onclick="closeIframe()">🔙 Back</button>
+    <iframe id="projectFrame"></iframe>
+  </div>
 
-const startSound = document.getElementById('startSound');
-const stopSound = document.getElementById('stopSound');
+  <footer>Developed by <b>Kanu Jaat</b> 🧠</footer>
 
-window.onload = function() {
-  renderTexts();
-  const storedStart = localStorage.getItem("tractorStartTime");
-  if(storedStart) {
-    startTime = new Date(storedStart);
-    let activityIdx = localStorage.getItem("tractorStartActivity");
-    if(activityIdx !== null) currentActivity = parseInt(activityIdx);
-    if(currentActivity!=null && data[currentActivity] && data[currentActivity].logs.length>0) {
-      currentRowIndex = data[currentActivity].logs.length-1;
-    }
-    document.getElementById("startBtn").disabled = true;
-    document.getElementById("stopBtn").disabled = false;
-  } else {
-    startTime = null;
-    currentRowIndex = null;
-    document.getElementById("startBtn").disabled = false;
-    document.getElementById("stopBtn").disabled = true;
-  }
-  loadLogs();
-  
-  // Apply lock state on load
-  document.getElementById("clearBtn").classList.toggle("locked-hidden", isLocked);
-};
-
-// Translation helper
-function t(key, vars) {
-  let str = translations[selectedLang][key] || key;
-  if(vars) for(let k in vars) str = str.replace(`{${k}}`, vars[k]);
-  return str;
-}
-function autoActivityName() {
-  return selectedLang === "hi" ? `एक्टिविटी ${data.length + 1}` : `Activity ${data.length + 1}`;
-}
-
-// Helper to format Date to "HH:MM AM/PM"
-function formatTime(d) {
-  return d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
-}
-
-// Helper to parse "HH:MM AM/PM" into a Date object for manipulation
-function parseTimeStrToDate(timeStr, dateStr) {
-    if (!timeStr) return null;
-    
-    // Use log.date (e.g., 22/10/2025) to create a base date
-    let parts = dateStr.split('/');
-    let day = parts[0], month = parts[1], year = parts[2];
-    let baseDate = new Date(year, month - 1, day); 
-
-    // Parse time part (e.g., "08:35 PM")
-    let timeParts = timeStr.split(' ');
-    let time = timeParts[0];
-    let modifier = timeParts.length > 1 ? timeParts[1] : ''; 
-    let [hours, minutes] = time.split(':');
-
-    hours = parseInt(hours, 10);
-    minutes = parseInt(minutes, 10);
-    
-    // Convert to 24-hour time
-    if (modifier === 'PM' && hours < 12) {
-        hours += 12;
-    } else if (modifier === 'AM' && hours === 12) {
-        hours = 0; 
-    }
-    
-    // Set the time on the base date
-    baseDate.setHours(hours, minutes, 0, 0);
-    return baseDate;
-}
-
-// Render texts/buttons
-function renderTexts() {
-  document.getElementById("mainHeading").innerText = t("mainHeading");
-  document.getElementById("calcBtn").innerText = t("calculator");
-  document.getElementById("screenshotBtn").innerText = t("screenshot"); 
-  document.getElementById("newActBtn").innerText = t("newActivity");
-  document.getElementById("startBtn").innerText = t("start");
-  document.getElementById("stopBtn").innerText = t("stop");
-  document.getElementById("clearBtn").innerText = t("clear");
-  document.getElementById("lockBtn").innerText = t(isLocked ? "unlock" : "lock"); // NEW
-  renderTableHeadings();
-  renderCalculatorTexts();
-}
-function renderTableHeadings() {
-  let ths = document.getElementById("logTable").rows[0].cells;
-  ths[0].innerText = t("activity");
-  ths[1].innerText = t("date");
-  ths[2].innerText = t("startTime");
-  ths[3].innerText = t("stopTime");
-  ths[4].innerText = t("totalTime");
-  ths[5].innerText = t("payment");
-  ths[6].innerText = t("delete");
-}
-// Calculator Text Rendering
-function renderCalculatorTexts() {
-    document.getElementById("calcHeading").innerText = t("calcHeading");
-}
-
-// Load logs table 
-function loadLogs() {
-  const table = document.getElementById("logTable");
-  const summaryDiv = document.getElementById("summary");
-  renderTableHeadings();
-  while(table.rows.length > 1) table.deleteRow(1);
-
-  for(let actIdx = data.length - 1; actIdx >= 0; actIdx--) {
-    let act = data[actIdx];
-    let actTotalMins = 0, actTotalPay = 0;
-    act.logs.forEach((log, logIdx)=>{
-      const row = table.insertRow();
-      if(actIdx === currentActivity && logIdx === currentRowIndex) row.classList.add('active-row');
-
-      let actCell = row.insertCell(0);
-
-      let nameSpan = document.createElement("span");
-      nameSpan.innerText = act.activity;
-      let editBtn = document.createElement("button");
-      editBtn.className = "edit-btn";
-      editBtn.innerText = t("edit");
-      // NEW: Hide edit button if locked
-      if(isLocked) editBtn.classList.add("locked-hidden"); 
-      editBtn.onclick = ()=>{
-        let input = document.createElement("input");
-        input.value = act.activity;
-        input.className = "editable-input";
-        actCell.innerHTML = "";
-        actCell.appendChild(input);
-        input.focus();
-        input.onblur = saveName;
-        input.onkeydown = (e)=>{ if(e.key==="Enter") input.blur(); };
-        function saveName(){
-          act.activity = input.value.trim() || act.activity;
-          localStorage.setItem("tractorData", JSON.stringify(data));
-          loadLogs();
-        }
-      };
-      actCell.appendChild(nameSpan);
-      actCell.appendChild(document.createTextNode(" "));
-      actCell.appendChild(editBtn);
-
-      row.insertCell(1).innerText = log.date;
-
-      // --- Start Time Cell (with buttons) ---
-      let startCell = row.insertCell(2);
-      startCell.className = "time-cell"; 
-      startCell.innerHTML = `
-        <button class="time-adj-btn sub" data-type="start" data-change="-1">-</button>
-        <button class="time-adj-btn add" data-type="start" data-change="1">+</button>
-        <span id="start_time_${actIdx}_${logIdx}">${log.start}</span>
-      `;
-      let startSubBtn = startCell.querySelector('.sub');
-      let startAddBtn = startCell.querySelector('.add');
-      
-      // NEW: Hide start +/- buttons if locked
-      if(isLocked) {
-          startSubBtn.classList.add("locked-hidden");
-          startAddBtn.classList.add("locked-hidden");
-      }
-      startSubBtn.onclick = () => adjustTime(actIdx, logIdx, 'start', -1);
-      startAddBtn.onclick = () => adjustTime(actIdx, logIdx, 'start', 1);
-
-      // --- Stop Time Cell (with buttons) ---
-      let stopCell = row.insertCell(3);
-      stopCell.className = "time-cell";
-      if(log.stop) {
-        stopCell.innerHTML = `
-          <button class="time-adj-btn sub" data-type="stop" data-change="-1">-</button>
-          <button class="time-adj-btn add" data-type="stop" data-change="1">+</button>
-          <span id="stop_time_${actIdx}_${logIdx}">${log.stop}</span>
-        `;
-        let stopSubBtn = stopCell.querySelector('.sub');
-        let stopAddBtn = stopCell.querySelector('.add');
-        
-        // NEW: Hide stop +/- buttons if locked
-        if(isLocked) {
-            stopSubBtn.classList.add("locked-hidden");
-            stopAddBtn.classList.add("locked-hidden");
-        }
-        stopSubBtn.onclick = () => adjustTime(actIdx, logIdx, 'stop', -1);
-        stopAddBtn.onclick = () => adjustTime(actIdx, logIdx, 'stop', 1);
+  <script>
+    function checkPassword() {
+      const input = document.getElementById("passwordInput").value;
+      if (input === "kk@123") {
+        document.getElementById("passwordSection").classList.add("hidden");
+        document.getElementById("adminPanel").classList.remove("hidden");
       } else {
-        // Ensure padding is maintained even without buttons
-        stopCell.style.paddingTop = '20px'; 
-        stopCell.innerHTML = `
-          <span>${log.stop || ""}</span>
-        `;
+        alert("Incorrect password!");
       }
-      
-      row.insertCell(4).innerText = log.total || "";
-      row.insertCell(5).innerText = log.payment || "";
-      let delCell = row.insertCell(6);
-      let btn = document.createElement("button");
-      btn.innerText = t("delete");
-      // NEW: Hide delete button if locked
-      if(isLocked) btn.classList.add("locked-hidden"); 
-      btn.onclick = function() {
-        if(confirm(t("entryDelQ"))) {
-          act.logs.splice(logIdx,1);
-          localStorage.setItem("tractorData", JSON.stringify(data));
-          loadLogs();
-        }
-      };
-      delCell.appendChild(btn);
-
-      if(log.payment) {
-        let mins = Math.ceil(log.payment/RATE_PER_MIN);
-        actTotalMins += mins;
-        actTotalPay += log.payment;
-      }
-    });
-    if(act.logs.length>0) {
-      let sumRow = table.insertRow();
-      sumRow.className = "summary-row";
-      let cell = sumRow.insertCell(0);
-      cell.colSpan = 7;
-      let hrs = Math.floor(actTotalMins/60);
-      let mins = actTotalMins%60;
-      let summaryRowText = t("summaryRow", {H:hrs, M:mins, P:actTotalPay});
-      cell.innerHTML = summaryRowText;
-    }
-    let hrRow = table.insertRow();
-    hrRow.className = "hr-row";
-    let cell2 = hrRow.insertCell(0);
-    cell2.colSpan = 7;
-  }
-
-  let totalMins = 0;
-  let totalPay = 0;
-  data.forEach(act=>{
-    act.logs.forEach(log=>{
-      if(log.payment) {
-        let mins = Math.ceil(log.payment/RATE_PER_MIN);
-        totalMins += mins;
-        totalPay += log.payment;
-      }
-    });
-  });
-  let hrs = Math.floor(totalMins/60);
-  let mins = totalMins%60;
-  summaryDiv.innerText = t("totalSummary", {H:hrs, M:mins, P:totalPay});
-}
-
-
-// New Function to adjust time by a minute
-function adjustTime(actIdx, logIdx, type, change) {
-    if (isLocked) return; // Prevent adjustment if locked
-    
-    let log = data[actIdx].logs[logIdx];
-    let timeStr = (type === 'start' ? log.start : log.stop);
-    let dateStr = log.date; 
-
-    // Stop adjustment if stop time is empty
-    if (type === 'stop' && !timeStr) return;
-
-    // 1. Get the current time as a manipulable Date object
-    let currentTime = parseTimeStrToDate(timeStr, dateStr);
-
-    if (!currentTime) return;
-
-    // 2. Adjust the time by 'change' minutes
-    currentTime.setMinutes(currentTime.getMinutes() + change);
-
-    // 3. Update the log object
-    let newTimeStr = formatTime(currentTime);
-
-    if (type === 'start') {
-        log.start = newTimeStr;
-        // If changing start time, we must also check if the active start time needs update
-        if(actIdx === currentActivity && logIdx === currentRowIndex && startTime) {
-             startTime = currentTime; // Update the live timer start time
-             localStorage.setItem("tractorStartTime", startTime.toISOString());
-        }
-    } else {
-        log.stop = newTimeStr;
     }
 
-    // 4. Recalculate Total Time and Payment
-    let startDateTime = parseTimeStrToDate(log.start, log.date);
-    let stopDateTime = parseTimeStrToDate(log.stop, log.date);
-
-    if (startDateTime && stopDateTime) {
-        let diffMs = stopDateTime - startDateTime;
-        let totalMins = Math.ceil(diffMs / (1000 * 60));
-        
-        // Ensure total time is non-negative
-        if (totalMins < 0) totalMins = 0;
-
-        let hrs = Math.floor(totalMins / 60);
-        let mins = totalMins % 60;
-        let totalStr = selectedLang === "hi" ? `${hrs} घण्टा ${mins} मिनट` : `${hrs} hour ${mins} minute`;
-        let payment = totalMins * RATE_PER_MIN;
-
-        log.total = totalStr;
-        log.payment = payment;
-    } 
-    
-    // 5. Save and reload the table
-    localStorage.setItem("tractorData", JSON.stringify(data));
-    loadLogs();
-}
-
-
-// Buttons Logic 
-document.getElementById("newActBtn").onclick = ()=>{
-  if(currentActivity!==null && startTime) finishActivity();
-  data.push({activity: autoActivityName(), logs:[]});
-  localStorage.setItem("tractorData", JSON.stringify(data));
-  currentActivity = data.length-1;
-  startTime = null;
-  currentRowIndex = null;
-  localStorage.removeItem("tractorStartTime");
-  localStorage.removeItem("tractorStartActivity");
-  document.getElementById("startBtn").disabled = false;
-  document.getElementById("stopBtn").disabled = true;
-  loadLogs();
-};
-
-document.getElementById("startBtn").onclick = ()=>{
-  if(currentActivity===null) return alert(t("pleaseCreate"));
-  if(startTime) return alert(t("pleaseStop"));
-  startTime = new Date();
-  startSound.play();
-  localStorage.setItem("tractorStartTime", startTime.toISOString());
-  localStorage.setItem("tractorStartActivity", currentActivity);
-  const log = {
-    // Note: Date formatting should match parseTimeStrToDate's expected format (e.g., DD/MM/YYYY)
-    date: new Date().toLocaleDateString(selectedLang==="hi"?"hi-IN":"en-GB"),
-    start: formatTime(startTime),
-    stop: "",
-    total: "",
-    payment: ""
-  };
-  data[currentActivity].logs.push(log);
-  currentRowIndex = data[currentActivity].logs.length-1;
-  localStorage.setItem("tractorData", JSON.stringify(data));
-  document.getElementById("startBtn").disabled = true;
-  document.getElementById("stopBtn").disabled = false;
-  loadLogs();
-};
-
-document.getElementById("stopBtn").onclick = ()=>{
-  if(currentActivity===null) return alert(t("pleaseCreate"));
-  if(!startTime) return alert(t("pleaseStart"));
-  finishActivity();
-  stopSound.play();
-  localStorage.removeItem("tractorStartTime");
-  localStorage.removeItem("tractorStartActivity");
-  startTime = null;
-  currentRowIndex = null;
-  document.getElementById("startBtn").disabled = false;
-  document.getElementById("stopBtn").disabled = true;
-  loadLogs();
-};
-
-function finishActivity() {
-  const stopTime = new Date();
-  const diffMs = stopTime - startTime;
-  const totalMins = Math.ceil(diffMs/(1000*60));
-  const hrs = Math.floor(totalMins/60);
-  const mins = totalMins%60;
-  let totalStr = selectedLang === "hi" ? `${hrs} घण्टा ${mins} मिनट` : `${hrs} hour ${mins} minute`;
-  const payment = totalMins*RATE_PER_MIN;
-  const log = data[currentActivity].logs[currentRowIndex];
-  log.stop = formatTime(stopTime);
-  log.total = totalStr;
-  log.payment = payment;
-  localStorage.setItem("tractorData", JSON.stringify(data));
-}
-
-document.getElementById("clearBtn").onclick = ()=>{
-  if(isLocked) return; // Prevent clear if locked
-  if(currentActivity===null) return alert(t("pleaseCreate"));
-  if(confirm(t("allDelQ"))) {
-    data[currentActivity].logs = [];
-    localStorage.setItem("tractorData", JSON.stringify(data));
-    loadLogs();
-  }
-};
-
-// NEW: Toggle Lock Function
-function toggleLock() {
-  isLocked = !isLocked;
-  localStorage.setItem("tractorLocked", JSON.stringify(isLocked));
-  
-  // Hide/Show Clear Data Button
-  document.getElementById("clearBtn").classList.toggle("locked-hidden", isLocked);
-
-  // Reload logs to apply/remove 'locked-hidden' class on +/- and Delete buttons
-  loadLogs(); 
-  
-  // Update Lock Button Text
-  document.getElementById("lockBtn").innerText = t(isLocked ? "unlock" : "lock");
-  
-  alert(isLocked ? "डेटा लॉक कर दिया गया है। संपादन/डिलीट बटन छिपे हुए हैं।" : "डेटा अनलॉक हो गया है। अब आप संपादन/डिलीट कर सकते हैं।");
-}
-
-document.getElementById("lockBtn").onclick = toggleLock; // NEW Button handler
-
-
-document.getElementById('langSel').value = selectedLang;
-document.getElementById('langSel').onchange = function() {
-  selectedLang = this.value;
-  localStorage.setItem("tractorLang", selectedLang);
-  renderTexts();
-  loadLogs();
-};
-
-// ==========================================================
-// SCREENSHOT LOGIC USING HTML2CANVAS 
-// ==========================================================
-document.getElementById("screenshotBtn").onclick = () => {
-    const buttonsToHide = document.querySelectorAll('button:not(#closeCalcBtn), select');
-    buttonsToHide.forEach(btn => btn.style.display = 'none');
-    
-    const modal = document.getElementById('calculatorModal');
-    if (modal) modal.style.display = 'none';
-    
-    html2canvas(document.body, {
-        scale: 2, 
-        allowTaint: true, 
-        useCORS: true,
-        windowHeight: document.body.scrollHeight,
-        windowWidth: document.body.scrollWidth,
-        y: window.scrollY
-    }).then(canvas => {
-        const link = document.createElement('a');
-        const date = new Date().toISOString().slice(0, 10);
-        link.download = `Tractor_Log_${date}.png`;
-        
-        link.href = canvas.toDataURL('image/png');
-        
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        buttonsToHide.forEach(btn => btn.style.display = '');
-        if (modal) modal.style.display = '';
-        
-        alert("स्क्रीनशॉट लिया गया और आपके फ़ोन में PNG फ़ाइल के रूप में डाउनलोड हो गया है।");
-
-    }).catch(error => {
-        alert("स्क्रीनशॉट लेने में कोई त्रुटि हुई। कृपया दोबारा प्रयास करें या अपने डिवाइस के मैन्युअल स्क्रीनशॉट तरीके का उपयोग करें।");
-        
-        buttonsToHide.forEach(btn => btn.style.display = '');
-        if (modal) modal.style.display = '';
-    });
-};
-// ==========================================================
-
-
-// Live timer update every second 
-setInterval(()=>{
-  if(startTime && currentActivity!==null && currentRowIndex!==null){
-    const now = new Date();
-    const diffMs = now - startTime;
-    const totalMins = Math.floor(diffMs / (1000*60));
-    const hrs = Math.floor(totalMins/60);
-    const mins = totalMins%60;
-    const totalStr = selectedLang === "hi" ? `${hrs} घण्टा ${mins} मिनट` : `${hrs} hour ${mins} minute`;
-    const row = document.getElementById("logTable").rows[1 + currentRowIndex];
-    if(row){
-      row.cells[4].innerText = totalStr;
-      row.cells[5].innerText = totalMins*RATE_PER_MIN;
-    }
-  }
-},1000);
-
-// ==========================================================
-// GRID CALCULATOR LOGIC (UPDATED FOR HISTORY AND CLEAR ENTRY)
-// ==========================================================
-
-const modal = document.getElementById('calculatorModal');
-const calcBtn = document.getElementById('calcBtn');
-const closeBtn = document.getElementById('closeCalcBtn');
-
-// Calculator State Variables (UPDATED)
-let currentInputMins = 0; 
-let storedValueMins = 0; 
-let currentOperator = null;
-let isNewNumber = true; 
-let isResult = false; 
-let displayValue = 0; 
-let typingUnit = 'M'; 
-let historyString = ''; 
-
-// Helper: Convert total minutes to H:M string
-function formatTimeHM(totalMins) {
-    const hours = Math.floor(Math.abs(totalMins) / 60);
-    const minutes = Math.abs(totalMins) % 60;
-    const sign = totalMins < 0 ? '-' : '';
-    return `${sign}${hours}${t('hourShort')} ${minutes}${t('minuteShort')}`;
-}
-
-// Helper: Update the main display
-function updateDisplay() {
-    let mainDisplayEl = document.getElementById('mainDisplay');
-    let operationEl = document.getElementById('currentOperation'); 
-    let paymentEl = document.getElementById('calcPayment');
-    
-    let timeString = formatTimeHM(currentInputMins);
-    mainDisplayEl.innerText = timeString;
-
-    let payment = Math.ceil(Math.abs(currentInputMins)) * RATE_PER_MIN;
-    paymentEl.innerText = t("totalPaymentResult", {P:payment});
-
-    // Display the full history string
-    operationEl.innerText = historyString || formatTimeHM(storedValueMins) || ""; 
-}
-
-// Helper: Handle arithmetic
-function performCalculation() {
-    // Before performing calculation, finalize the history string
-    if (currentOperator) {
-        historyString = `${historyString} ${formatTimeHM(currentInputMins)} =`;
-    }
-    
-    if (currentOperator === 'add') {
-        currentInputMins = storedValueMins + currentInputMins;
-    } else if (currentOperator === 'subtract') { 
-        currentInputMins = storedValueMins - currentInputMins;
-    }
-    if (currentInputMins < 0) currentInputMins = 0;
-    
-    storedValueMins = currentInputMins; // Store result for potential chain operations
-    currentOperator = null;
-    isResult = true; 
-    isNewNumber = true;
-    displayValue = 0; 
-    typingUnit = 'M';
-}
-
-// Helper: Converts the current input number (in the 'H' or 'M' unit) into total minutes
-function convertInputToMinutes(unit, value) {
-    if (unit === 'H') {
-        return value * 60;
-    } else { 
-        return value;
-    }
-}
-
-// Button Click Handler
-function handleCalculatorClick(e) {
-    const target = e.target;
-    if (!target.classList.contains('calc-btn')) return;
-
-    const type = target.dataset.type;
-    const value = target.dataset.value;
-    const unit = target.dataset.unit;
-    const op = target.dataset.op;
-    
-    // Reset state after equals, if a number or unit is pressed
-    if (isResult && (value !== undefined || unit !== undefined)) {
-        currentInputMins = 0;
-        storedValueMins = 0;
-        historyString = ''; 
-        isResult = false;
-        isNewNumber = true;
+    function openIframe(url) {
+      const iframeContainer = document.getElementById("iframeContainer");
+      const iframe = document.getElementById("projectFrame");
+      iframe.src = url;
+      iframeContainer.style.display = "flex";
+      document.body.style.overflow = "hidden";
     }
 
-    if (value !== undefined) {
-        if (isNewNumber) {
-            displayValue = parseInt(value); 
-            currentInputMins = convertInputToMinutes(typingUnit, displayValue);
-            isNewNumber = false;
-        } else {
-            if (displayValue.toString().length < 5) {
-                displayValue = parseInt(displayValue.toString() + value.toString());
-                currentInputMins = convertInputToMinutes(typingUnit, displayValue);
-            }
-        }
-    } 
-    else if (type === 'clearAll') { // AC button
-        currentInputMins = 0;
-        storedValueMins = 0;
-        currentOperator = null;
-        displayValue = 0;
-        typingUnit = 'M';
-        isNewNumber = true;
-        isResult = false;
-        historyString = ''; // Clear history
-    } 
-    else if (type === 'clearEntry') { // NEW: C button
-        if (isResult) return; 
-
-        if (!isNewNumber) {
-            let strVal = displayValue.toString();
-            strVal = strVal.slice(0, -1);
-            displayValue = strVal === '' ? 0 : parseInt(strVal);
-            
-            currentInputMins = convertInputToMinutes(typingUnit, displayValue);
-            if (displayValue === 0) {
-                 isNewNumber = true;
-            }
-        }
-    } 
-    else if (unit !== undefined) {
-        typingUnit = unit;
-        displayValue = 0; 
-        isNewNumber = true; 
-        
-        if (!currentOperator && !isResult) {
-             currentInputMins = 0;
-        }
+    function closeIframe() {
+      const iframeContainer = document.getElementById("iframeContainer");
+      const iframe = document.getElementById("projectFrame");
+      iframeContainer.style.display = "none";
+      iframe.src = "";
+      document.body.style.overflow = "auto";
     }
-    else if (op === 'add' || op === 'subtract') {
-        if (!isNewNumber) { // If a number was just typed, calculate intermediate result
-            performCalculation(); 
-            isResult = false; // Turn off result flag for chained operation logic
-        }
+  </script>
 
-        let opSymbol = op === 'add' ? '+' : '-';
-        
-        // Update history string 
-        if (historyString.includes('=')) {
-            // Start new history chain from result
-            historyString = `${formatTimeHM(storedValueMins)} ${opSymbol}`; 
-        } else if (storedValueMins !== 0) {
-            // If performing chained operation (e.g., 5+3+), use storedValue for display
-            historyString = `${formatTimeHM(storedValueMins)} ${opSymbol}`;
-        } else {
-             historyString = `${formatTimeHM(currentInputMins)} ${opSymbol}`;
-             storedValueMins = currentInputMins;
-        }
-
-        currentOperator = op;
-        currentInputMins = 0; 
-        displayValue = 0;
-        typingUnit = 'M';
-        isNewNumber = true;
-    }
-    else if (op === 'equals') {
-        if (currentOperator) {
-            performCalculation();
-        }
-        isResult = true;
-    }
-    
-    updateDisplay();
-}
-
-// Open Modal
-calcBtn.onclick = function() {
-  modal.style.display = "block";
-  // Reset calculator state on open
-  currentInputMins = 0;
-  storedValueMins = 0;
-  currentOperator = null;
-  typingUnit = 'M';
-  displayValue = 0;
-  isNewNumber = true;
-  isResult = false;
-  historyString = ''; // Reset history
-  updateDisplay();
-
-  document.getElementById('calcButtons').addEventListener('click', handleCalculatorClick);
-}
-
-// Close Modal
-closeBtn.onclick = function() {
-  modal.style.display = "none";
-  document.getElementById('calcButtons').removeEventListener('click', handleCalculatorClick);
-}
-
-// Close Modal if user clicks outside of it
-window.onclick = function(event) {
-  if (event.target == modal) {
-    modal.style.display = "none";
-    document.getElementById('calcButtons').removeEventListener('click', handleCalculatorClick);
-  }
-}
-
-renderTexts();
-</script>
 </body>
 </html>
