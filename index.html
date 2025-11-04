@@ -22,9 +22,13 @@
       margin-top: 100px;
     }
 
+    input[type="email"],
     input[type="password"] {
       padding: 10px;
       font-size: 16px;
+      display: block;
+      margin: 10px auto;
+      width: 250px;
     }
 
     button {
@@ -35,6 +39,17 @@
       color: white;
       border: none;
       border-radius: 5px;
+      margin-top: 10px;
+      transition: background-color 0.3s;
+    }
+
+    button:hover:not([disabled]) {
+      background-color: #0056b3;
+    }
+    
+    button:disabled {
+        background-color: #a0a0a0;
+        cursor: not-allowed;
     }
 
     table {
@@ -58,6 +73,7 @@
 
     tr:hover {
       background-color: #f2f2f2;
+      cursor: pointer;
     }
 
     .hidden {
@@ -100,26 +116,50 @@
       font-size: 14px;
       color: #666;
     }
+    
+    #logoutBtn {
+        background-color: #dc3545;
+    }
+    #logoutBtn:hover {
+        background-color: #c82333;
+    }
+    
+    /* Style for dynamically added Coming Soon rows */
+    .coming-soon-row {
+        background-color: #f4f4f4 !important; 
+        color: #888;
+        cursor: default !important;
+    }
+    
+    /* Style for Refresh Button */
+    #refreshBtn {
+        background-color: #17a2b8; /* Info/Cyan color */
+    }
+    #refreshBtn:hover {
+        background-color: #138496;
+    }
   </style>
 </head>
 <body>
 
   <div id="passwordSection">
-    <h1>🔐 Admin Security</h1>
-    <p>Enter password to access admin panel:</p>
+    <h1>🔐 Admin Security (Firebase Login)</h1>
+    <p>Enter email and password to access admin panel:</p>
+    <input type="email" id="emailInput" placeholder="Enter Admin Email">
     <input type="password" id="passwordInput" placeholder="Enter Password">
-    <button onclick="checkPassword()">Unlock</button>
+    <button onclick="checkAuth()">Unlock</button>
   </div>
 
   <div id="adminPanel" class="hidden">
     <h1>Welcome, Choudhary Ji 😎</h1>
-    <table>
+    
+    <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 20px;">
+        <button id="refreshBtn" onclick="refreshProjects()">🔄 Refresh Projects</button> 
+        <button id="logoutBtn" onclick="logoutAdmin()">🔓 Logout</button>
+    </div>
+    
+    <table id="projectTable">
       <tr><th>Project Name</th></tr>
-      <tr><td onclick="openIframe('https://kannu-jaat.github.io/DJ/kk')">DJ API Live</td></tr>
-      <tr><td onclick="openIframe('https://kannu-jaat.github.io/DJ-Mixing-2/finally')">DJ 2 Web API</td></tr>
-      <tr><td onclick="openIframe('https://kannu-jaat.github.io/flying-modi/jaat')">Flying Modi</td></tr>
-      <tr><td>Coming Soon</td></tr>
-      <tr><td>Coming Soon</td></tr>
     </table>
   </div>
 
@@ -130,31 +170,196 @@
 
   <footer>Developed by <b>Kanu Jaat</b> 🧠</footer>
 
-  <script>
-    function checkPassword() {
-      const input = document.getElementById("passwordInput").value;
-      if (input === "kk@123") {
-        document.getElementById("passwordSection").classList.add("hidden");
-        document.getElementById("adminPanel").classList.remove("hidden");
-      } else {
-        alert("Incorrect password!");
-      }
+  <script type="module">
+    // --- Firebase SDK Imports ---
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.0/firebase-app.js";
+    import { 
+        getAuth, 
+        signInWithEmailAndPassword, 
+        signOut,
+        onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/12.2.0/firebase-auth.js";
+
+    // --- Configuration ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyB6S2-rkj9UHhBpAGARVNuXEibg9NsvOhA",
+        authDomain: "kk-mixing.firebaseapp.com",
+        projectId: "kk-mixing",
+        storageBucket: "kk-mixing.firebasestorage.app",
+        messagingSenderId: "296842598114",
+        appId: "1:296842598114:web:3e934bf51ebc2b179eb0bb",
+        measurementId: "G-C3HY42YLZP"
+    };
+    
+    // ** GitHub Gist Raw URL (Your Dynamic Content Source) **
+    const GIST_URL = 'https://gist.githubusercontent.com/kannu-jaat/6d1681555372db2699af816e3d217db8/raw/adminData.json';
+
+    // --- Initialize Firebase ---
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    
+    // --- DOM Elements ---
+    const passwordSection = document.getElementById("passwordSection");
+    const adminPanel = document.getElementById("adminPanel");
+    const emailInput = document.getElementById("emailInput");
+    const passwordInput = document.getElementById("passwordInput");
+    const projectTable = document.getElementById("projectTable");
+
+
+    // --- 1. Load Projects from Gist (Handles 'Coming Soon' and Cache Busting) ---
+    async function loadProjects() {
+        // Clear existing rows except the header
+        while (projectTable.rows.length > 1) {
+            projectTable.deleteRow(1);
+        }
+        
+        // ** Cache Buster: Ensures fresh data is always fetched **
+        const cacheBusterURL = GIST_URL + '?' + new Date().getTime(); 
+
+        try {
+            const response = await fetch(cacheBusterURL);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const projects = await response.json();
+
+            if (!Array.isArray(projects) || projects.length === 0) {
+                const newRow = projectTable.insertRow(-1);
+                const cell = newRow.insertCell(0);
+                cell.textContent = "No projects defined in Gist.";
+            } else {
+                projects.forEach((project) => {
+                    const newRow = projectTable.insertRow(-1);
+                    const cell = newRow.insertCell(0);
+                    
+                    cell.textContent = project.name || "Untitled Project";
+                    
+                    // Check if URL is present and valid
+                    if (project.url && project.url.trim() !== "") {
+                        // LIVE PROJECT
+                        cell.setAttribute('onclick', `openIframe('${project.url.trim()}')`);
+                    } else {
+                        // COMING SOON PROJECT (URL is empty, controlled by Gist)
+                        newRow.classList.add('coming-soon-row');
+                        cell.removeAttribute('onclick');
+                        // Override hover behavior
+                        newRow.onmouseover = function() { this.classList.add('coming-soon-row'); } 
+                        newRow.onmouseout = function() { this.classList.add('coming-soon-row'); } 
+                    }
+                });
+            }
+
+        } catch (error) {
+            console.error("Error loading projects from Gist:", error);
+            const newRow = projectTable.insertRow(-1);
+            const cell = newRow.insertCell(0);
+            cell.textContent = "Error loading projects. Check Gist URL/Content.";
+            cell.style.backgroundColor = '#f8d7da';
+        }
     }
 
-    function openIframe(url) {
-      const iframeContainer = document.getElementById("iframeContainer");
-      const iframe = document.getElementById("projectFrame");
-      iframe.src = url;
-      iframeContainer.style.display = "flex";
-      document.body.style.overflow = "hidden";
+    // --- 2. Refresh Projects Logic ---
+    window.refreshProjects = function() {
+        const refreshButton = document.getElementById("refreshBtn");
+        
+        refreshButton.textContent = "Loading...";
+        refreshButton.disabled = true;
+        
+        loadProjects().then(() => {
+            refreshButton.textContent = "✅ Updated!";
+            setTimeout(() => {
+                refreshButton.textContent = "🔄 Refresh Projects";
+                refreshButton.disabled = false;
+            }, 1000); // 1 second success message
+        }).catch(() => {
+            refreshButton.textContent = "Refresh Failed";
+            refreshButton.disabled = false;
+        });
     }
 
-    function closeIframe() {
-      const iframeContainer = document.getElementById("iframeContainer");
-      const iframe = document.getElementById("projectFrame");
-      iframeContainer.style.display = "none";
-      iframe.src = "";
-      document.body.style.overflow = "auto";
+    // --- 3. Login Logic (Handles verifying state and error messages) ---
+    window.checkAuth = function() {
+        const email = emailInput.value;
+        const password = passwordInput.value;
+        const authButton = document.querySelector("#passwordSection button");
+
+        if (!email || !password) {
+            alert("Please enter both email and password.");
+            return;
+        }
+
+        // Start Verifying State
+        authButton.textContent = "Verifying...";
+        authButton.disabled = true;
+
+        signInWithEmailAndPassword(auth, email, password)
+            .then(() => {
+                authButton.textContent = "Success!";
+            })
+            .catch((error) => {
+                let errorMessage = "Login failed. Please check your email and password.";
+                if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-email') {
+                    errorMessage = "Error: Admin Email not found.";
+                } else if (error.code === 'auth/wrong-password') {
+                    errorMessage = "Error: Invalid password. Please try again.";
+                }
+                
+                alert(errorMessage);
+                // Reset button state
+                authButton.textContent = "Unlock";
+                authButton.disabled = false; 
+            });
+    }
+    
+    // --- 4. Logout Logic ---
+    window.logoutAdmin = function() {
+        signOut(auth)
+            .then(() => console.log("Admin logged out successfully."))
+            .catch((error) => alert("Error logging out."));
+    }
+
+    // --- 5. Session Check (Main controller) ---
+    onAuthStateChanged(auth, (user) => {
+        const authButton = document.querySelector("#passwordSection button");
+        
+        if (user) {
+            // User is signed in. Show admin panel & load dynamic content.
+            passwordSection.classList.add("hidden");
+            adminPanel.classList.remove("hidden");
+            
+            loadProjects(); 
+            
+            authButton.textContent = "Unlock";
+            authButton.disabled = false;
+
+        } else {
+            // User is signed out. Show login section.
+            adminPanel.classList.add("hidden");
+            passwordSection.classList.remove("hidden");
+            
+            emailInput.value = '';
+            passwordInput.value = '';
+            authButton.textContent = "Unlock";
+            authButton.disabled = false; 
+        }
+    });
+
+
+    // --- 6. Iframe Functions (Unchanged) ---
+    window.openIframe = function(url) {
+        const iframeContainer = document.getElementById("iframeContainer");
+        const iframe = document.getElementById("projectFrame");
+        iframe.src = url;
+        iframeContainer.style.display = "flex";
+        document.body.style.overflow = "hidden";
+    }
+
+    window.closeIframe = function() {
+        const iframeContainer = document.getElementById("iframeContainer");
+        const iframe = document.getElementById("projectFrame");
+        iframeContainer.style.display = "none";
+        iframe.src = "";
+        document.body.style.overflow = "auto";
     }
   </script>
 
